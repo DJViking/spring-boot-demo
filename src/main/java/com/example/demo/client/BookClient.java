@@ -17,7 +17,7 @@ public class BookClient {
 
     private final RestTemplate restTemplate;
 
-    public BookClient(@Qualifier("firstRestTemplate") final RestTemplate restTemplate) {
+    public BookClient(@Qualifier("secondRestTemplate") final RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 

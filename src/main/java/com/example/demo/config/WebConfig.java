@@ -22,6 +22,7 @@ import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,15 @@ public class WebConfig {
 
     @Bean
     public RestTemplate firstRestTemplate(
+        @Value("first.baseUrl") final String baseUrl,
+        @Value("first.username") final String username,
+        @Value("first.password") final String password
+    ) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return createRestTemplate(baseUrl, username, password);
+    }
+
+    @Bean
+    public RestTemplate secondRestTemplate(
         @Value("second.baseUrl") final String baseUrl,
         @Value("second.username") final String username,
         @Value("second.password") final String password
@@ -57,7 +67,7 @@ public class WebConfig {
         final String username,
         final String password
     ) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        final HttpComponentsClientHttpRequestFactory requestFactory = createRequestFactory();
+        final HttpComponentsClientHttpRequestFactory requestFactory = requestFactory();
         return new RestTemplateBuilder()
             .uriTemplateHandler(new DefaultUriBuilderFactory(baseUrl))
             .basicAuthentication(username, password)
@@ -65,7 +75,8 @@ public class WebConfig {
             .build();
     }
 
-    private HttpComponentsClientHttpRequestFactory createRequestFactory() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+    @Bean
+    public HttpComponentsClientHttpRequestFactory requestFactory() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         final TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
         final SSLContext sslContext = SSLContexts.custom()
             .loadTrustMaterial(acceptingTrustStrategy)

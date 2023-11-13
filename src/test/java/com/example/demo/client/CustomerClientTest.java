@@ -20,10 +20,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
 
-@RestClientTest({ CustomerClient.class, WebConfig.class })
 @ActiveProfiles("it")
 @ExtendWith(SpringExtension.class)
+@RestClientTest({ CustomerClient.class, WebConfig.class })
 public class CustomerClientTest {
 
     private final static Long CUSTOMER_NUMBER = 12345L;
@@ -46,7 +47,7 @@ public class CustomerClientTest {
             .build();
         final String data = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedDto);
 
-        mockServer.expect(requestTo("/api/customer/" + CUSTOMER_NUMBER))
+        mockServer.expect(requestTo("http://localhost:9090/api/customer/" + CUSTOMER_NUMBER))
             .andRespond(withSuccess(data, MediaType.APPLICATION_JSON));
 
         final Optional<CustomerDTO> response = customerClient.getCustomer(CUSTOMER_NUMBER);
