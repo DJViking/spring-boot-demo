@@ -1,9 +1,11 @@
 package com.example.demo.config;
 
+import javax.net.ssl.SSLContext;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 
 import javax.net.ssl.SSLContext;
 
@@ -17,12 +19,12 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuil
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
 import org.apache.hc.core5.pool.PoolReusePolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.ssl.TrustStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -35,39 +37,47 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 @Configuration
 public class WebConfig {
 
-    @Bean
-    public RestClient firstRestClient(
-        @Value("first.baseUrl") final String baseUrl,
-        @Value("first.username") final String username,
-        @Value("first.password") final String password
-    ) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return RestClient.create(createRestTemplate(baseUrl, username, password));
+    private final RestClient.Builder restClientBuilder;
+
+    public WebConfig(final RestClient.Builder restClientBuilder) {
+        this.restClientBuilder = restClientBuilder;
     }
 
     @Bean
-    public RestTemplate firstRestTemplate(
-        @Value("first.baseUrl") final String baseUrl,
-        @Value("first.username") final String username,
-        @Value("first.password") final String password
+    public RestClient firstRestClient(
+            @Value("${first.baseUrl}") final String baseUrl,
+            @Value("${first.username}") final String username,
+            @Value("${first.password}") final String password
     ) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return createRestTemplate(baseUrl, username, password);
+        return restClientBuilder
+                .baseUrl(baseUrl)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, encodeBasic(username, password))
+                //.requestFactory(createRequestFactory())
+                .build();
+    }
+
+    private String encodeBasic(final String username, final String password) {
+        return "Basic " + Base64
+                .getEncoder()
+                .encodeToString((username + ":" + password)
+                .getBytes());
     }
 
     @Bean
     public RestTemplate secondRestTemplate(
-        @Value("second.baseUrl") final String baseUrl,
-        @Value("second.username") final String username,
-        @Value("second.password") final String password
+            @Value("${second.baseUrl}") final String baseUrl,
+            @Value("${second.username}") final String username,
+            @Value("${second.password}") final String password
     ) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         return createRestTemplate(baseUrl, username, password);
     }
 
     private RestTemplate createRestTemplate(
-        final String baseUrl,
-        final String username,
-        final String password
+            final String baseUrl,
+            final String username,
+            final String password
     ) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        final HttpComponentsClientHttpRequestFactory requestFactory = requestFactory();
+        final HttpComponentsClientHttpRequestFactory requestFactory = createRequestFactory();
         return new RestTemplateBuilder()
             .uriTemplateHandler(new DefaultUriBuilderFactory(baseUrl))
             .basicAuthentication(username, password)
@@ -75,8 +85,7 @@ public class WebConfig {
             .build();
     }
 
-    @Bean
-    public HttpComponentsClientHttpRequestFactory requestFactory() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+    private HttpComponentsClientHttpRequestFactory createRequestFactory() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         final TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
         final SSLContext sslContext = SSLContexts.custom()
             .loadTrustMaterial(acceptingTrustStrategy)

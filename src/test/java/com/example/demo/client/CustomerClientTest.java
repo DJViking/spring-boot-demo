@@ -6,21 +6,19 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.util.Optional;
 
-import com.example.demo.client.CustomerClient;
 import com.example.demo.config.WebConfig;
 import com.example.demo.dto.CustomerDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.RestClient;
 
 @ActiveProfiles("it")
 @ExtendWith(SpringExtension.class)
@@ -38,6 +36,9 @@ public class CustomerClientTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Value("${first.baseUrl}")
+    private String baseUrl;
+
     @Test
     public void getCustomer() throws JsonProcessingException {
         final CustomerDTO expectedDto = CustomerDTO.builder()
@@ -47,7 +48,7 @@ public class CustomerClientTest {
             .build();
         final String data = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedDto);
 
-        mockServer.expect(requestTo("http://localhost:9090/api/customer/" + CUSTOMER_NUMBER))
+        mockServer.expect(requestTo(baseUrl + "/api/customer/" + CUSTOMER_NUMBER))
             .andRespond(withSuccess(data, MediaType.APPLICATION_JSON));
 
         final Optional<CustomerDTO> response = customerClient.getCustomer(CUSTOMER_NUMBER);
