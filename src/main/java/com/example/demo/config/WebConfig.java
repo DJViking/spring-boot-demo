@@ -30,31 +30,11 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 @Configuration
 public class WebConfig {
-
-    private final RestClient.Builder restClientBuilder;
-
-    public WebConfig(final RestClient.Builder restClientBuilder) {
-        this.restClientBuilder = restClientBuilder;
-    }
-
-    @Bean
-    public RestClient firstRestClient(
-            @Value("${first.baseUrl}") final String baseUrl,
-            @Value("${first.username}") final String username,
-            @Value("${first.password}") final String password
-    ) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return restClientBuilder
-                .baseUrl(baseUrl)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, encodeBasic(username, password))
-                //.requestFactory(createRequestFactory())
-                .build();
-    }
 
     private String encodeBasic(final String username, final String password) {
         return "Basic " + Base64
@@ -64,7 +44,7 @@ public class WebConfig {
     }
 
     @Bean
-    public RestTemplate secondRestTemplate(
+    public RestTemplate restTemplate(
             @Value("${second.baseUrl}") final String baseUrl,
             @Value("${second.username}") final String username,
             @Value("${second.password}") final String password

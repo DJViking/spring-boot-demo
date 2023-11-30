@@ -1,9 +1,8 @@
-
 server:
   port: 8090
 info:
   app:
-    description: "Service to manage customers"
+    description: "Service to manage customers and books"
 management:
   server:
     port: 8088
@@ -12,6 +11,46 @@ management:
       exposure:
         include: "health,prometheus"
 
+spring:
+  cache:
+    jcache:
+      config: ehcache.xml
+  batch:
+    job:
+      enabled: false
+  jackson:
+    time-zone: Europe/Oslo
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    virtual-host: ${RABBITMQ_VIRTUALHOST:}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+  cloud:
+    stream:
+      bindings:
+        status:
+          destination: customer.status
+        customerRequest:
+          destination: customer.test-request
+          group: customer
+        customerResponse:
+          destination: customer.test-response
+          group: customer
+  datasource:
+    url: ${JDBC_URL:jdbc:sqlserver://localhost;databaseName=Demo_TEST}
+    username: ${JDBC_USER:username}
+    password: ${JDBC_PASS:password}
+    driverClassName: ${JDBC_DRIVER_CLASS_NAME:com.microsoft.sqlserver.jdbc.SQLServerDriver}
+    hikari:
+      maximum-pool-size: 20
+  jpa:
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+
 eureka:
   instance:
     hostname: customer-service
@@ -19,27 +58,18 @@ eureka:
     register-with-eureka: false
     fetch-registry: false
 
-spring:
-  datasource:
-    url: jdbc:h2:mem:test
-    username: sa
-    password: sa
-    driverClassName: org.h2.Driver
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: create-drop
-    defer-datasource-initialization: true
-  threads:
-    virtual:
-      enabled: true
+hazelcast:
+  address: ${HAZELCAST_ADDRESS:localhost:5701}
+  group:
+    name: ${HAZELCAST_GROUP:username}
+    password: ${HAZELCAST_PASS:password}
 
 first:
-  baseUrl: http://localhost:9090
+  baseUrl: http://localhost:8092
   username: username
   password: password
 
 second:
-  baseUrl: http://localhost:9091
+  baseUrl: http://localhost:8093
   username: username
   password: password

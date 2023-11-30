@@ -1,7 +1,7 @@
 package com.example.demo.web;
 
 import com.example.demo.dto.CustomerDTO;
-import com.example.demo.model.Customer;
+import com.example.demo.domain.Customer;
 import com.example.demo.service.CustomerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

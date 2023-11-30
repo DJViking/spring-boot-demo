@@ -1,9 +1,14 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.stereotype.Repository;
 
-@Transactional(readOnly = true)
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
+import com.example.demo.domain.Customer;
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Long>, QuerydslPredicateExecutor<Customer> {
+
+    Customer findByName(String name);
+
 }
